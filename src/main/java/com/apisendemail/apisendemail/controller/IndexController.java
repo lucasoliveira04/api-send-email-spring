@@ -2,6 +2,7 @@ package com.apisendemail.apisendemail.controller;
 
 import com.apisendemail.apisendemail.dto.RequestMessage;
 import com.apisendemail.apisendemail.service.SendMessageService;
+import jakarta.mail.MessagingException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +18,7 @@ public class IndexController {
     }
 
     @PostMapping("/sendMessage")
-    public ResponseEntity<String> send(@RequestBody RequestMessage request){
+    public ResponseEntity<String> send(@RequestBody RequestMessage request) throws MessagingException {
         sendMessageService.sendMessage(request);
 
         return ResponseEntity.ok("Email enviado com sucesso");
