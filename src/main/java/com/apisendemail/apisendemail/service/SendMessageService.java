@@ -1,29 +1,32 @@
 package com.apisendemail.apisendemail.service;
 
 import com.apisendemail.apisendemail.dto.RequestMessage;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import com.apisendemail.apisendemail.service.messages.EmailService;
+import jakarta.mail.MessagingException;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
+
 @Service
-@RequiredArgsConstructor
 public class SendMessageService {
+    private final Map<String, EmailService> senders;
 
-    private final JavaMailSender mailSender;
+    public SendMessageService(
+            @Qualifier("v1") EmailService emailServiceV1,
+            @Qualifier("v2") EmailService emailServiceV2
+    ) {
+        this.senders = Map.of(
+                "v1", emailServiceV1,
+                "v2", emailServiceV2
+        );
+    }
 
-    @Value("${spring.mail.username}")
-    public String toEmail;
-
-    public void sendMessage(RequestMessage requestMessage) {
-        SimpleMailMessage message = new SimpleMailMessage();
-
-        message.setFrom(requestMessage.fromEmail());
-        message.setTo(toEmail);
-        message.setSubject(requestMessage.subject());
-        message.setText(requestMessage.body());
-
-        mailSender.send(message);
+    public void sendMessage(RequestMessage requestMessage, String version) throws MessagingException {
+        EmailService emailService = senders.get(version);
+        if (emailService == null) {
+            throw new MessagingException("Version not found");
+        }
+        emailService.sendMessage(requestMessage);
     }
 }
